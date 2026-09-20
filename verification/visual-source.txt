@@ -1,0 +1,7 @@
+Asset: Embedded background in ../index.html
+Generator: Built-in ImageGen
+Original generation: C:/Users/User/.codex/generated_images/01a0bc65-0291-77f3-a682-ec31e144d6fe/exec-fccb8d18-12c3-4664-bb44-a7fdb3261d48.png
+Delivery: PNG embedded directly in the HTML; no external image file is required.
+
+Final prompt:
+Create one wide 1536x1024 landscape bitmap illustration for an Indonesian IT festival website background. Authentic crisp 16-bit SNES pixel art, clean intentional square pixels and dithering, no vector look. Futuristic Palembang at night, recognizable red Ampera bridge spanning Musi river, small angular cyan and hot pink lit buildings, yellow windows, tiny festive technology details. Dark ink #040612 sky with calm empty space across upper two thirds for overlaid page title; richly detailed bridge and riverside city concentrated in bottom third and outer edges. Strong saturated cyan #00F0FF, yellow #FFE600 and pink #FF2E93 accents. Flat limited palette, sharp pixels, no gradients, no glow orbs, no bokeh, no text, no letters, no logos, no watermark. Scene is stylized artwork, not a photograph.

@@ -1,0 +1,15 @@
+{
+  "runtimeErrors": [],
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+    "Failed to load resource: net::ERR_FILE_NOT_FOUND"
+  ],
+  "ticketId": "ITFEST-2026-E2168E5025EE",
+  "completed": true
+}
