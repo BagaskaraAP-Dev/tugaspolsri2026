@@ -1,15 +1,10 @@
 {
   "runtimeErrors": [],
-  "consoleErrors": [
-    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
-    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
-    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
-    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
-    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
-    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
-    "Failed to load resource: net::ERR_FILE_NOT_FOUND",
-    "Failed to load resource: net::ERR_FILE_NOT_FOUND"
-  ],
-  "ticketId": "ITFEST-2026-E2168E5025EE",
-  "completed": true
+  "consoleErrors": [],
+  "ticketId": "ITFEST-2026-8CF2984AC975",
+  "completed": true,
+  "app": "file:///C:/Users/User/Downloads/tugaspolsri2026/index.html",
+  "completedAt": "2026-09-20T22:31:43.105Z",
+  "themedIllustrations": 7,
+  "mascotPoses": 4
 }

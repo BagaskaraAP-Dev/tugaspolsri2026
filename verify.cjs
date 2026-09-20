@@ -1,12 +1,14 @@
-const { chromium } = require('C:/Users/User/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const { pathToFileURL } = require('node:url');
 
-const app = 'file:///C:/Users/User/it-festival-2026/index.html';
+const app = pathToFileURL(path.join(__dirname, 'index.html')).href;
 const output = path.join(__dirname, 'verification');
 fs.mkdirSync(output, { recursive: true });
+fs.writeFileSync(path.join(output, 'results.json'), JSON.stringify({ completed: false, app, startedAt: new Date().toISOString() }, null, 2));
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 for (const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
   if (match[1].trim()) new vm.Script(match[1]);
@@ -14,7 +16,7 @@ for (const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
 
 (async () => {
   const browser = await chromium.launch({
-    executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
+    channel: process.env.BROWSER_CHANNEL || 'chrome',
     headless: true,
   });
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
@@ -27,11 +29,42 @@ for (const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
     assert.ok(condition, label);
     console.log('PASS: ' + label);
   }
+  async function renderedRoute() {
+    await page.waitForFunction(() => {
+      const [name = 'landing', id] = location.hash.slice(1).split('/');
+      if (['register', 'dashboard', 'confirm', 'ticket'].includes(name) && document.querySelector('#auth-modal').open) return true;
+      const views = { landing: 'view-landing', events: 'view-events', event: 'view-event-detail', dashboard: 'view-dashboard', register: 'view-form-pendaftaran', confirm: 'view-konfirmasi', ticket: 'view-status' };
+      const view = document.getElementById(views[name]);
+      if (!view || view.hidden) return false;
+      if (name === 'events') return document.querySelector('#event-catalog').dataset.category === (id || 'all');
+      if (name === 'event') return document.querySelector('.detail-title')?.textContent === EVENTS.find(event => event.id === id)?.title;
+      if (name === 'register') return document.querySelector('#form-event-name').textContent.startsWith(EVENTS.find(event => event.id === id)?.title);
+      if (name === 'ticket') return document.querySelector('.ticket')?.getAttribute('aria-label') === 'E-Ticket ' + id;
+      return view.children.length > 0;
+    });
+  }
+  async function waitForUrl(pattern) {
+    await page.waitForURL(pattern);
+    await renderedRoute();
+  }
+  async function loadImages(selector) {
+    const images = page.locator(selector);
+    for (const image of await images.all()) {
+      await image.scrollIntoViewIfNeeded();
+      await image.evaluate(async element => {
+        await element.decode();
+        if (!element.naturalWidth || !element.naturalHeight) throw Error('Gambar gagal dimuat: ' + element.src);
+      });
+    }
+    await page.evaluate(() => window.scrollTo(0, 0));
+  }
   async function route(hash) {
     await page.goto(app + '#' + hash, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.querySelector('#desktop-auth').children.length > 0);
+    await renderedRoute();
   }
   async function screenshot(name) {
+    await page.locator('#toast').waitFor({ state: 'hidden' });
     await page.screenshot({ path: path.join(output, name + '.png'), fullPage: true });
   }
   async function noOverflow(label) {
@@ -46,7 +79,8 @@ for (const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
   }
   try {
     await route('landing');
-    await page.waitForFunction(() => Array.from(document.querySelectorAll('#mascot-gallery img')).every(img => img.complete && img.naturalWidth > 0));
+    await loadImages('.brand-symbol img, #mascot-gallery img');
+    await check(await page.locator('.brand-symbol img').getAttribute('src') === 'belida.jpg', 'Local Belida navbar logo');
     await page.evaluate(() => document.fonts.ready);
     const heroDimensions = await page.evaluate(async () => {
       const image = new Image();
@@ -54,21 +88,42 @@ for (const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
       await image.decode();
       return [image.naturalWidth, image.naturalHeight];
     });
-    await check(heroDimensions[0] === 1536 && heroDimensions[1] === 1024, 'Embedded pixel-art background decodes');
+    await check(heroDimensions[0] === 1536 && heroDimensions[1] === 1024, 'Local Ampera background decodes');
     await screenshot('desktop-landing');
     await noOverflow('Desktop landing');
-    await check(await page.locator('#mascot-gallery img').count() === 4, 'Four mascot fallbacks render');
-    const initialSeconds = await page.locator('#seconds').textContent();
-    await page.waitForFunction(seconds => document.querySelector('#seconds').textContent !== seconds, initialSeconds);
-    await check(true, 'Countdown ticks');
+    await check(await page.locator('#mascot-gallery img').count() === 4, 'Four generated Belibit poses render');
+    const eventStarted = await page.evaluate(() => Date.now() >= new Date('2026-10-03T00:00:00+07:00').getTime());
+    if (eventStarted) {
+      await check((await page.locator('#count-caption').textContent()).includes('KOMPETISI TELAH DIMULAI'), 'Countdown shows the event-started state');
+    } else {
+      const initialSeconds = await page.locator('#seconds').textContent();
+      await page.waitForFunction(seconds => document.querySelector('#seconds').textContent !== seconds, initialSeconds);
+      await check(true, 'Countdown ticks');
+    }
     await page.getByRole('link', { name: 'JELAJAHI EVENT', exact: true }).click();
-    await page.waitForURL('**#events');
+    await waitForUrl('**#events');
     await check(await page.locator('.event-card').count() === 9, 'Catalog contains nine events');
     for (const [category, count] of [['kompetisi', 5], ['pelatihan', 2], ['seminar', 2]]) {
       await page.locator('[data-filter="' + category + '"]').click();
       await page.waitForURL('**#events/' + category);
       await check(await page.locator('.event-card').count() === count, category + ' category filter');
+      if (category !== 'seminar') {
+        await loadImages('.event-cover-art img');
+        await check(await page.locator('.event-cover-art img').count() === count, category + ' themed illustrations');
+        await screenshot('desktop-' + category);
+      }
     }
+    for (const id of ['mlbb', 'ff', 'vibe', 'ctf', 'photo', 'training-vibe', 'training-cyber']) {
+      await route('event/' + id);
+      await loadImages('.event-detail-art img');
+      await check((await page.locator('.event-detail-art img').getAttribute('src')).endsWith('belibit-' + id + '.webp'), 'Matching detail artwork: ' + id);
+      await noOverflow('Desktop detail ' + id);
+    }
+    await route('events/kompetisi');
+    await page.locator('.event-cover-art').nth(1).click();
+    await waitForUrl('**#event/ff');
+    await check(await page.locator('.detail-title').textContent() === 'Free Fire (FF)', 'Artwork opens the matching event');
+    await screenshot('desktop-event-free-fire');
     await login('demo@itfest.id', 'wrong-password');
     await page.getByText('Email atau password salah.', { exact: true }).waitFor();
     await check(await page.locator('#auth-modal').isVisible(), 'Wrong password stays unauthenticated');
@@ -172,10 +227,12 @@ for (const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
     const soloTicket = page.url().split('#')[1];
     await check(await page.locator('.ticket').isVisible(), 'Solo registration completes');
     await page.setViewportSize({ width: 390, height: 844 });
-    for (const hash of ['landing', 'events', 'event/seminar-rahmi', 'dashboard', 'register/ctf', soloTicket]) {
+    for (const hash of ['landing', 'events', 'events/kompetisi', 'events/pelatihan', 'event/ff', 'event/training-cyber', 'event/seminar-rahmi', 'dashboard', 'register/ctf', soloTicket]) {
       await route(hash);
-      await noOverflow('Mobile ' + hash.split('/')[0]);
-      await screenshot('mobile-' + hash.split('/')[0]);
+      await loadImages('.view:not([hidden]) img');
+      await noOverflow('Mobile ' + hash);
+      const screenshotName = hash.startsWith('ticket/') ? 'mobile-ticket' : hash === 'event/ff' ? 'mobile-event' : 'mobile-' + hash.replace(/[^a-zA-Z0-9-]/g, '-');
+      await screenshot(screenshotName);
     }
     await page.setViewportSize({ width: 320, height: 740 });
     await route('landing');
@@ -185,7 +242,7 @@ for (const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
     await screenshot('small-mobile-menu');
     await check(runtimeErrors.length === 0, 'No JavaScript runtime errors');
     await check(!consoleErrors.some(message => /regular expression|SyntaxError|TypeError/.test(message)), 'No invalid form patterns or console syntax errors');
-    fs.writeFileSync(path.join(output, 'results.json'), JSON.stringify({ runtimeErrors, consoleErrors, ticketId, completed: true }, null, 2));
+    fs.writeFileSync(path.join(output, 'results.json'), JSON.stringify({ runtimeErrors, consoleErrors, ticketId, completed: true, app, completedAt: new Date().toISOString(), themedIllustrations: 7, mascotPoses: 4 }, null, 2));
   } finally {
     await browser.close();
   }

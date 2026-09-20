@@ -1,5 +1,7 @@
 # IT-FESTIVAL 2026 SPA - Flow Planning, PRD, TRD, dan DRD
 
+Versi dokumen: 21 September 2026, sesuai implementasi lokal terbaru.
+
 Dokumen ini menggabungkan flow planning, Product Requirements Document (PRD), Technical Requirements Document (TRD), dan Design Requirements Document (DRD) untuk proyek tugas `tugaspolsri2026`.
 
 ## 1. Ringkasan Proyek
@@ -94,7 +96,7 @@ IT-FESTIVAL 2026 membutuhkan website event yang dapat menampilkan informasi resm
 ### 3.4 Fitur Utama
 
 1. Landing page dengan countdown event.
-2. Showcase empat slot maskot Belibit.
+2. Showcase empat ilustrasi Belibit: Siap Tempur, Cyber Coder, Trophy Belida, dan Retro Gamer.
 3. Katalog 9 event autentik.
 4. Filter kategori event.
 5. Detail event dengan tab deskripsi, syarat, dan benefit.
@@ -105,6 +107,9 @@ IT-FESTIVAL 2026 membutuhkan website event yang dapat menampilkan informasi resm
 10. E-ticket dengan ID unik dan status aktif.
 11. Cetak tiket melalui `window.print()`.
 12. Penyimpanan data lokal dengan localStorage.
+13. Latar Ampera, logo, pose maskot, ilustrasi acara, dan gambar referensi terkait tersedia sebagai file lokal.
+14. Logo Belida lokal serta tujuh ilustrasi bertema pada kartu dan detail kompetisi/pelatihan.
+15. Strip informasi menampilkan `16 SEP - 30 OKT 2026`. Tulisan kecil di bawah logo menampilkan `POLITEKNIK NEGERI SRIWIJAYA`.
 
 ### 3.5 Data Event
 
@@ -160,12 +165,25 @@ Kategori seminar:
 ### 4.2 Struktur File
 
 ```text
-it-festival-2026/
+tugaspolsri2026/
   index.html
+  README.md
   verify.cjs
+  package.json
+  package-lock.json
+  belida.jpg
+  cyberbelida.jpg
+  belibit-*.png
+  assets/hero/ampera-palembang.png
+  assets/events/
+    belibit-*.webp
+    source/belibit-*.png
+    PROMPTS.md
+  PRD.md
+  TRD.md
+  DRD.md
   PROJECT_PLAN_PRD_TRD_DRD.md
   verification/
-  .vercel/
   .gitignore
 ```
 
@@ -201,7 +219,7 @@ Routing menggunakan hash URL agar cocok untuk hosting statis:
 ```text
 location.hash
 hashchange event
-renderRoute()
+route()
 ```
 
 Keuntungan hash routing:
@@ -223,6 +241,8 @@ Validasi utama:
 7. Team member wajib sesuai kebutuhan event.
 
 ### 4.7 Deployment
+
+Sumber proyek disimpan di repository GitHub `BagaskaraAP-Dev/tugaspolsri2026` dan dipublikasikan melalui proyek Vercel `it-festival-2026`. `.vercelignore` mengecualikan kredensial lokal, dependensi pengembangan, dokumentasi, dan hasil pengujian dari unggahan website.
 
 Platform: Vercel
 
@@ -251,7 +271,7 @@ Address     : 01534b73e689bcec.vercel-dns-017.com
 ### 4.8 Perintah Deploy Ulang
 
 ```powershell
-cd C:\Users\User\it-festival-2026
+# Jalankan dari folder proyek tugaspolsri2026.
 npx.cmd vercel@latest --prod
 ```
 
@@ -270,6 +290,20 @@ Isi repo:
 3. `verification/` jika ingin menyertakan bukti QA.
 4. `verify.cjs` jika ingin menyertakan script pengujian.
 5. `.gitignore`.
+6. Seluruh gambar Belibit, logo, dan folder `assets/events/`.
+7. `package.json` dan `package-lock.json` untuk server lokal dan Playwright.
+
+### 4.10 Aset Gambar dan Verifikasi
+
+Latar hero memakai `assets/hero/ampera-palembang.png`, yaitu ilustrasi Ampera yang sebelumnya tertanam dalam HTML dan kini disimpan sebagai file lokal.
+
+Logo navbar dan favicon menggunakan `belida.jpg`. Referensi awal karakter disimpan di `cyberbelida.jpg`. Empat PNG Belibit di folder utama menampilkan pose Siap Tempur, Cyber Coder, Trophy Belida, dan Retro Gamer.
+
+Tujuh sampul acara menggunakan WebP lokal pada `assets/events/`: `mlbb`, `ff`, `vibe`, `ctf`, `photo`, `training-vibe`, dan `training-cyber`. Pemetaan gambar dan teks alternatif ada pada `EVENT_ART`. Fungsi `renderEventCover()` menampilkan ilustrasi yang sama pada kartu dan detail acara. PNG asli ketujuh ilustrasi disimpan di `assets/events/source/`, dan prompt ilustrasi tersedia di `assets/events/PROMPTS.md`. Aset aktif, versi asli, dan referensi terkait tetap disertakan di folder proyek.
+
+Jalankan `npm.cmd install`, kemudian `npm.cmd start` untuk server lokal pada http://127.0.0.1:4174. Website juga bisa dibuka melalui `index.html`.
+
+Jalankan `npm.cmd run verify` untuk memeriksa gambar, routing, akun, pendaftaran, tiket, dan tampilan responsif. Script memakai Playwright dari dependensi proyek dan Google Chrome, serta menemukan `index.html` melalui `__dirname`. Hasil terbaru tersimpan di `verification/`.
 
 ## 5. DRD - Design Requirements Document
 
@@ -302,15 +336,15 @@ Emerald Green  : #10B981
 ### 5.3 Tipografi
 
 1. Header pixel: `Press Start 2P`.
-2. Body dan subheading: `Pixelify Sans`.
-3. Data teknis dan kode: `Space Mono`.
+2. Subheading dan judul kartu: `Pixelify Sans`.
+3. Body, data teknis, dan kode: `Space Mono`.
 
 ### 5.4 Komponen UI
 
 Komponen utama:
 
-1. Navbar sticky.
-2. Hero section dengan background pixel art.
+1. Navbar sticky. Strip informasi menampilkan `16 SEP - 30 OKT 2026`. Tulisan kecil di bawah logo menampilkan `POLITEKNIK NEGERI SRIWIJAYA`.
+2. Hero section dengan ilustrasi Ampera pixel art dari `assets/hero/ampera-palembang.png`.
 3. Countdown timer.
 4. Card maskot.
 5. Card event.
@@ -335,11 +369,19 @@ Komponen utama:
 
 Breakpoint dan perilaku:
 
-1. Mobile: navbar ringkas, grid menjadi satu kolom, tombol wrap.
+1. Mobile: navbar ringkas, kartu event satu kolom, maskot dua kolom, tombol wrap.
 2. Tablet: grid dua kolom untuk event dan maskot.
-3. Desktop: layout lebar dengan grid multi-kolom.
+3. Desktop: kompetisi tiga kolom, pelatihan dua kolom, dan galeri maskot empat kolom.
 4. Ticket tetap terbaca di layar kecil.
 5. Form input tidak boleh overflow.
+
+### 5.7 Identitas Belibit dan Sampul Acara
+
+Empat pose maskot memakai ilustrasi raster cyber Belida, dengan visor, headset, tubuh perak, dan aksen neon yang konsisten. Logo lokal juga tampil sebagai favicon dan identitas navbar.
+
+Setiap kompetisi memiliki latar sesuai tema: arena MOBA untuk MLBB, pulau battle royale untuk Free Fire, meja pengembangan aplikasi untuk Vibe Coding, arena terminal dan bendera untuk CTF, serta kamera dan kehidupan kampus untuk fotografi. Dua pelatihan menampilkan Belibit sebagai instruktur coding dan keamanan jaringan.
+
+Sampul menggunakan rasio 3:2 dengan dimensi stabil. Label peserta berada di sudut gambar; judul, jadwal, dan tombol tetap terpisah agar terbaca. Gambar dapat diklik menuju detail acara. Detail menampilkan ilustrasi lengkap, dan animasi mengikuti preferensi reduced motion.
 
 ## 6. Acceptance Criteria
 
@@ -390,4 +432,4 @@ localstorage
 neo-brutalist
 ```
 
-README singkat dapat dibuat dari ringkasan dokumen ini jika diperlukan.
+Petunjuk menjalankan dan memeriksa versi terbaru tersedia di `README.md`.

@@ -1,0 +1,8 @@
+.git/
+.vercel/
+.env*
+node_modules/
+verification/
+verify.cjs
+*.md
+assets/events/PROMPTS.md

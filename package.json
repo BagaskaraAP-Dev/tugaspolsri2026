@@ -1,0 +1,14 @@
+{
+  "name": "tugaspolsri2026",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Website IT-FESTIVAL 2026 POLSRI dengan maskot Belibit dan ilustrasi acara lokal.",
+  "scripts": {
+    "start": "http-server . -a 127.0.0.1 -p 4174 -c-1",
+    "verify": "node verify.cjs"
+  },
+  "devDependencies": {
+    "http-server": "14.1.1",
+    "playwright": "1.63.0"
+  }
+}
